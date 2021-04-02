@@ -1,6 +1,13 @@
 const CoinGame = artifacts.require("Game");
+const Web3 = require('web3');
+web3= new Web3(new Web3.providers.HttpProvider('http://localhost:7545'));
 
-module.exports = function (deployer) {
+var accounts;
+
+
+
+module.exports = async function (deployer) {
+    accounts = await web3.eth.getAccounts();
     deployer.deploy(
       CoinGame, 
       0,//game id
@@ -9,6 +16,7 @@ module.exports = function (deployer) {
       3,//number of winners
       100000, //game pool
       10, //lock_in percentage
-      200000,//player contribution
+      200000,//player contribution,
+      {from: accounts[0], value: 100000}
       );
   };

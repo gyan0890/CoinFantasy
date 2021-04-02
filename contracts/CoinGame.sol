@@ -36,7 +36,7 @@ contract Game {
         * totalGamePool/numOfPlayers cannot be done in Solidity
         */
         
-        // require(msg.value >= (_lockIn * 1 wei), "Creator needs to lockIn 10% to create the game");
+        require(100*msg.value >= (_lockIn *_gamePool*1 wei), "Creator needs to lockIn 10% to create the game");
         
         //Generates a unique GameID for every game
         gameId = _gameId;
