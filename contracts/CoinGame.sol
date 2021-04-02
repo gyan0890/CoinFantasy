@@ -36,7 +36,7 @@ contract Game {
         * totalGamePool/numOfPlayers cannot be done in Solidity
         */
         
-        require(msg.value == (_lockIn * 1 wei), "Creator needs to lockIn 10% to create the game");
+        // require(msg.value >= (_lockIn * 1 wei), "Creator needs to lockIn 10% to create the game");
         
         //Generates a unique GameID for every game
         gameId = _gameId;
@@ -92,6 +92,21 @@ contract Game {
     //Change it to internal later, keep public only for testing purposes
     function distributePrize(address payable winner, uint amount) public {
         winner.transfer(amount);
+    }
+
+    function getGameState() public view returns (
+        uint,// gameId,
+        address, // gameOwner,
+        uint, // gamePool,
+        uint, // numPlayers,
+        uint, // numCoins,
+        uint, // contractBalance,
+        //gameTime - should be in seconds
+        uint, // gameTime,
+        uint, // numWinners,
+        uint // playerContribution
+    ){
+        return(gameId, gameOwner, gamePool, numPlayers, numCoins, contractBalance, gameTime, numWinners, playerContribution);
     }
     
     
