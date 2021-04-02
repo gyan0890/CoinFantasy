@@ -52,8 +52,8 @@ contract Game {
     }
     
     function joinGame(uint[] memory coins, uint[] memory weightage) public payable returns(uint _gameId) {
-        require(msg.value == playerContribution, "Player has not contributed the exact amount for the game");
-        require(coins.length > 0, "You have to choose at least 7 coins");
+        require(msg.value >= playerContribution, "Player has not contributed the exact amount for the game");
+        require(coins.length >= numCoins, "You have to choose at least 7 coins");
         require(weightage.length > 0, "Weightage for coins is not sent");
         require(weightage.length == coins.length, "Weightage for all coins is not present");
         
