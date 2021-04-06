@@ -10,7 +10,7 @@ var accounts;
 
 const sendtoConstruct = 100000;
 const playerContribution = 200000;
-const numberOfCoins = 7;
+const numberOfCoins = 3;
 const gameTime = 4*3600;
 const numberOfWinners = 3;
 const gamePool = 100000;
@@ -129,4 +129,72 @@ describe('joinGame', () => {
     });
     
 });
+
+
+describe('startGame', () => {
+  before(async function () {
+    accounts = await web3.eth.getAccounts();
+    instance = await Game.new(
+        1,//game id
+        numberOfCoins,//number of coins
+        gameTime,//game time
+        numberOfWinners,//number of winners
+        winnerWeight,//winner weight
+        gamePool, //game pool
+        lockIn, //lock_in percentage
+        playerContribution, //player contribution,
+        {from: accounts[0], value: sendtoConstruct}
+    );
+
+    initGameState = await instance.getGameState.call();
+
+    weightage = [1, 1, 1];
+    coinsSelected = [0, 1, 2];
+    // instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[3], value:playerContribution});
+    instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[1], value:playerContribution}).then(()=>{console.log('player 1 joined the game!')});
+    instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[2], value:playerContribution}).then(()=>{console.log('player 2 joined the game!')});
+    instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[3], value:playerContribution}).then(()=>{console.log('player 3 joined the game!')});
+  });
+
+  it('should have created deployed a Game contract and 3 players have joined the game', async function () {
+      ;
+  })
+
+  it('should start the game', async function () {
+    await instance.startGame.sendTransaction({from:accounts[0], value:playerContribution});
+  });
+});
+
+describe('endGame', () => {
+    before(async function () {
+      accounts = await web3.eth.getAccounts();
+      instance = await Game.new(
+          1,//game id
+          numberOfCoins,//number of coins
+          gameTime,//game time
+          numberOfWinners,//number of winners
+          winnerWeight,//winner weight
+          gamePool, //game pool
+          lockIn, //lock_in percentage
+          playerContribution, //player contribution,
+          {from: accounts[0], value: sendtoConstruct}
+      );
+  
+      initGameState = await instance.getGameState.call();
+  
+      weightage = [1, 1, 1];
+      coinsSelected = [0, 1, 2];
+      // instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[3], value:playerContribution});
+      instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[1], value:playerContribution}).then(()=>{console.log('player 1 joined the game!')});
+      instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[2], value:playerContribution}).then(()=>{console.log('player 2 joined the game!')});
+      instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[3], value:playerContribution}).then(()=>{console.log('player 3 joined the game!')});
+      instance.startGame.sendTransaction({from:accounts[0], value:playerContribution}).then(()=>{console.log('game started!')});
+
+    });
+  
+    it('should have created deployed a Game contract, 3 players have joined the game and the game should have strated', async function () {
+        ;
+    });
+  })
+
 
