@@ -16,7 +16,12 @@ contract Game {
     uint gameTime;
     uint numWinners;
     uint playerContribution;
-    
+    uint[] winnerWeights;
+    bool live;
+    bool completed;
+    address orgAddress = 0x604BCD042D2d5B355ecE14B6aC3224d23F29a51c;
+    address payable orgWallet = payable(address(orgAddress));
+
     struct Player {
 
         address player;
@@ -26,7 +31,7 @@ contract Game {
     
     mapping(uint => Player) players;
     
-    constructor(uint _gameId, uint _numCoins, uint _gameTime, uint _numWinners, 
+    constructor(uint _gameId, uint _numCoins, uint _gameTime, uint _numWinners, uint [] memory _winnerWeights,
     uint _gamePool, uint _lockIn, uint _playerContribution) payable {
         
         /*Creator needs to mandatory lock in 10% of the gamePool money
@@ -35,8 +40,12 @@ contract Game {
         * Same for playerContribution - it has to come from the front end since
         * totalGamePool/numOfPlayers cannot be done in Solidity
         */
-        
+
         require(100*msg.value >= (_lockIn *_gamePool*1 wei), "Creator needs to lockIn 10% to create the game");
+
+        require(_numWinners == _winnerWeights.length, "Number of winners doesn't match with the weightage of winners");
+
+        winnerWeights = _winnerWeights;
         
         //Generates a unique GameID for every game
         gameId = _gameId;
@@ -48,10 +57,24 @@ contract Game {
         numWinners = _numWinners;
         gamePool = _gamePool;
         playerContribution = _playerContribution;
-        
+        live = false;
+        completed = false;
+    }
+
+    //assuming the contract address is availably publically, 
+    //steps are taken to restrict the control function
+
+    function startGame() public {
+
+
+        require(msg.sender==orgAddress, "only the organization can start the game");
+        live = true;
     }
     
     function joinGame(uint[] memory coins, uint[] memory weightage) public payable returns(uint _gameId) {
+
+        require(live==false, "The game has started");
+        require(completed==false, "The game has ended");
         require(msg.value >= playerContribution, "Player has not contributed the exact amount for the game");
         require(coins.length >= numCoins, "You have to choose at least 7 coins");
         require(weightage.length > 0, "Weightage for coins is not sent");
@@ -79,10 +102,22 @@ contract Game {
         selfdestruct(payable(address(this)));
     }
     
-    function gameEnded() public view returns(bool) {
+    function gameEnded() public returns(bool) {
+
+        require(msg.sender==orgAddress, "only the organization can end the game");
+        require(live==true, "The game is not live");
+        require(completed==false, "The game has already completed");
         require(block.timestamp > gameTime, "Game is still in progress");
+
+        live = false;
+        completed= true;
+        
+
         //Do the Oracle thing and calculate the winner/winners
+
         /*
+
+        //for 5 coins
         Based on the logic we decide, distribute the prize within numWinners
         */
         return true;
@@ -90,8 +125,15 @@ contract Game {
     }
     
     //Change it to internal later, keep public only for testing purposes
-    function distributePrize(address payable winner, uint amount) public {
-        winner.transfer(amount);
+
+    //this is to be set as private function
+    function distributePrize(address payable[] memory winners) public {
+        uint i;
+        require(winners.length==numWinners, "Mismatch in number of winners");
+        for(i = 1; i <= winners.length; i++){
+            winners[i].transfer(winnerWeights[i]);
+        }
+        orgWallet.transfer(address(this).balance);
     }
 
     function getGameState() public view returns (
@@ -104,9 +146,10 @@ contract Game {
         //gameTime - should be in seconds
         uint, // gameTime,
         uint, // numWinners,
-        uint // playerContribution
+        uint, // playerContribution
+        uint //account balance
     ){
-        return(gameId, gameOwner, gamePool, numPlayers, numCoins, contractBalance, gameTime, numWinners, playerContribution);
+        return(gameId, gameOwner, gamePool, numPlayers, numCoins, contractBalance, gameTime, numWinners, playerContribution, address(this).balance);
     }
     
     

@@ -16,6 +16,7 @@ const numberOfWinners = 3;
 const gamePool = 100000;
 const lockIn = 10;
 const gameId = 1;
+const winnerWeight = [45000, 250000, 10000];
 
 describe('constructor', () => {
     var instance;
@@ -30,6 +31,7 @@ describe('constructor', () => {
             numberOfCoins,//number of coins
             gameTime,//game time
             numberOfWinners,//number of winners
+            winnerWeight,//winnerWeight
             gamePool, //game pool
             lockIn, //lock_in percentage
             playerContribution, //player contribution,
@@ -53,13 +55,14 @@ describe('constructor', () => {
     });
 
     it("should return error if insufficient amount is sent by the game owner", async function(){
+        var error = false;
         try{
-            const instance2 = instance = await Game.new(1, 7, 4*3600, 3, 100000, 0, 200000,  {from: accounts[0], value: 0});
-            assert(false);
+            const instance2 = instance = await Game.new(1, 7, 4*3600, 3, [45000, 250000, 10000],  100000, 10, 200000,  {from: accounts[0], value: 0});
+            console.log('no error, but error expected!')
         }catch(e){
-            ;
+            error = true;
         }
-
+        assert(error);
     });
 
 });
@@ -79,6 +82,7 @@ describe('joinGame', () => {
             numberOfCoins,//number of coins
             gameTime,//game time
             numberOfWinners,//number of winners
+            winnerWeight,//winner weight
             gamePool, //game pool
             lockIn, //lock_in percentage
             playerContribution, //player contribution,
@@ -90,7 +94,7 @@ describe('joinGame', () => {
         await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[3], value:playerContribution});
 
         //call will not modify the state of the contract
-        gameIdReturned = await instance.joinGame.call(coinsSelected, weightage, {from:accounts[3], value:playerContribution});
+        instance.joinGame.call(coinsSelected, weightage, {from:accounts[3], value:playerContribution}).then(function(gameId){gameIdReturned = gameId});
     });
 
     beforeEach(async function(){
@@ -123,6 +127,6 @@ describe('joinGame', () => {
     it('should return proper game id', async function(){
         assert(gameId == gameIdReturned);
     });
-
+    
 });
 
