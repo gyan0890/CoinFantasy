@@ -151,9 +151,9 @@ describe('startGame', () => {
     weightage = [1, 1, 1];
     coinsSelected = [0, 1, 2];
     // instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[3], value:playerContribution});
-    instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[1], value:playerContribution}).then(()=>{console.log('player 1 joined the game!')});
-    instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[2], value:playerContribution}).then(()=>{console.log('player 2 joined the game!')});
-    instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[3], value:playerContribution}).then(()=>{console.log('player 3 joined the game!')});
+    await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[1], value:playerContribution}).then(()=>{console.log('\tplayer 1 joined the game!')});
+    await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[2], value:playerContribution}).then(()=>{console.log('\tplayer 2 joined the game!')});
+    await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[3], value:playerContribution}).then(()=>{console.log('\tplayer 3 joined the game!')});
   });
 
   it('should have created deployed a Game contract and 3 players have joined the game', async function () {
@@ -161,8 +161,17 @@ describe('startGame', () => {
   })
 
   it('should start the game', async function () {
-    await instance.startGame.sendTransaction({from:accounts[0], value:playerContribution});
+    await instance.startGame.sendTransaction({from:accounts[0]});
   });
+
+  it('should throw error if someone other than organizer calls startGame', async function () {
+      error= true;
+      try{
+          await instance.startGame.sendTransaction({from:accounts[1]});
+          error = false;
+      }catch(e){;}
+      assert(error);
+  })
 });
 
 describe('endGame', () => {
@@ -185,14 +194,13 @@ describe('endGame', () => {
       weightage = [1, 1, 1];
       coinsSelected = [0, 1, 2];
       // instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[3], value:playerContribution});
-      instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[1], value:playerContribution}).then(()=>{console.log('player 1 joined the game!')});
-      instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[2], value:playerContribution}).then(()=>{console.log('player 2 joined the game!')});
-      instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[3], value:playerContribution}).then(()=>{console.log('player 3 joined the game!')});
-      instance.startGame.sendTransaction({from:accounts[0], value:playerContribution}).then(()=>{console.log('game started!')});
-
+      await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[1], value:playerContribution}).then(()=>{console.log('\tplayer 1 joined the game!')});
+      await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[2], value:playerContribution}).then(()=>{console.log('\tplayer 2 joined the game!')});
+      await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[3], value:playerContribution}).then(()=>{console.log('\tplayer 3 joined the game!')});
+      await instance.startGame.sendTransaction();
     });
   
-    it('should have created deployed a Game contract, 3 players have joined the game and the game should have strated', async function () {
+    it('should have created deployed a Game contract, 3 players have joined the game and the game should have started', async function () {
         ;
     });
   })

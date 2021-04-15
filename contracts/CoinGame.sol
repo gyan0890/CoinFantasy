@@ -3,8 +3,6 @@
 
 pragma solidity ^0.8.0;
 
-// import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
-// import "https://github.com/smartcontractkit/chainlink/blob/master/evm-contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
 
 contract Game {
     uint256 gameId;
@@ -12,19 +10,17 @@ contract Game {
     uint256 gamePool;
     uint256 numPlayers;
     uint256 numCoins;
-    uint256 contractBalance;
-    //gameTime - should be in seconds
+    // uint256 contractBalance;
     uint256 gameTime;
     uint256 numWinners;
     uint256 playerContribution;
     uint256[] winnerWeights;
     bool live;
     bool completed;
-    address orgAddress = 0x604BCD042D2d5B355ecE14B6aC3224d23F29a51c;
+    address orgAddress = 0x0d77B3d1E78e6DE6e0326E08B4B9CF1791e4E236;
     address payable orgWallet = payable(address(orgAddress));
-    // AggregatorV3Interface[] internal priceFeed;
-    int256[] startPrice;
-    int256[] endPrice;
+    // int256[] startPrice;
+    // int256[] endPrice;
 
     struct Player {
         address player;
@@ -44,16 +40,7 @@ contract Game {
         uint256 _lockIn,
         uint256 _playerContribution
     ) payable {
-        /*Creator needs to mandatory lock in 10% of the gamePool money
-         * Lock In amount needs to be sent from the front end because we cannot calculate
-         * floating point (10%) in Solidity.
-         * Same for playerContribution - it has to come from the front end since
-         * totalGamePool/numOfPlayers cannot be done in Solidity
-         */
 
-        // priceFeed.push(AggregatorV3Interface(0x8A753747A1Fa494EC906cE90E9f37563A8AF630e));//ETH
-        // priceFeed.push(AggregatorV3Interface(0xd8bD0a1cB028a31AA859A21A3758685a95dE4623));//LINK
-        // priceFeed.push(AggregatorV3Interface(0xECe365B379E1dD183B20fc5f022230C044d51404));//BTC
         require(
             100 * msg.value >= (_lockIn * _gamePool * 1 wei),
             "Creator needs to lockIn 10% to create the game"
@@ -66,12 +53,11 @@ contract Game {
 
         winnerWeights = _winnerWeights;
 
-        //Generates a unique GameID for every game
         gameId = _gameId;
         gameOwner = msg.sender;
         numPlayers = 0;
         numCoins = _numCoins;
-        contractBalance = msg.value;
+        // contractBalance = msg.value;
         gameTime = _gameTime;
         numWinners = _numWinners;
         gamePool = _gamePool;
@@ -80,8 +66,6 @@ contract Game {
         completed = false;
     }
 
-    //assuming the contract address is availably publically,
-    //steps are taken to restrict the control function
 
     function startGame() public {
         require(numPlayers == 3, "Mismatch in number of players.");
@@ -90,18 +74,6 @@ contract Game {
             "only the organization can start the game"
         );
         live = true;
-
-        // uint i;
-        // for(i=0; i < numCoins; i++){
-        //     (
-        //         uint80 roundID,
-        //         int price,
-        //         uint startedAt,
-        //         uint timeStamp,
-        //         uint80 answeredInRound
-        //     ) = priceFeed[i].latestRoundData();
-        //     startPrice.push(price);
-        // }
     }
 
     function joinGame(uint256[] memory coins, uint256[] memory weightage)
@@ -140,11 +112,10 @@ contract Game {
         newPlayer.player = msg.sender;
         newPlayer.coins = coins;
         newPlayer.weightage = weightage;
-        contractBalance += msg.value;
+        // contractBalance += msg.value;
         return gameId;
     }
 
-    //Selfdestruct the contract and send the remaining funds to the contract address
 
     function finalize() public {
         selfdestruct(payable(address(this)));
@@ -161,35 +132,11 @@ contract Game {
 
         live = false;
         completed = true;
-        // uint i;
-        // for(i=0; i < numCoins; i++){
-        //     (
-        //         uint80 roundID,
-        //         int price,
-        //         uint startedAt,
-        //         uint timeStamp,
-        //         uint80 answeredInRound
-        //     ) = priceFeed[i].latestRoundData();
-        //     endPrice.push(price);
-        // }
+        
 
-        //Do the Oracle thing and calculate the winner/winners
-
-        /*
-
-        //for 5 coins
-        Based on the logic we decide, distribute the prize within numWinners
-        */
         return true;
     }
 
-    // function sendData() public view returns(int[] memory, int[] memory){
-    //     return (startPrice, endPrice);
-    // }
-
-    //Change it to internal later, keep public only for testing purposes
-
-    //this is to be set as private function
     function distributePrize(address payable[] memory winners) public {
         uint256 i;
         require(winners.length == numWinners, "Mismatch in number of winners");
@@ -230,7 +177,7 @@ contract Game {
             gamePool,
             numPlayers,
             numCoins,
-            contractBalance,
+            address(this).balance,
             gameTime,
             numWinners,
             playerContribution,
