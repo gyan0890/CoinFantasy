@@ -18,6 +18,22 @@ const lockIn = 10;
 const gameId = 1;
 const winnerWeight = [45000, 250000, 10000];
 
+default_params = {'_gameId':gameId, '_numberOfCoins': numberOfCoins, '_gameTime': gameTime, 
+'_numberOfWinners':numberOfWinners, '_winnerWeight':winnerWeight, '_gamePool':gamePool, '_lockIn':lockIn, '_playerContribution':playerContribution, '_account':0, '_sendtoConstruct':sendtoConstruct};
+
+function createNewContract(params = default_params){
+    return Game.new(
+        params['_gameId'],
+        params['_numberOfCoins'],
+        params['_gameTime'],
+        params['_numberOfWinners'],
+        params['_winnerWeight'],
+        params['_gamePool'],
+        params['_lockIn'],
+        params['_playerContribution'],
+        {from: params['_account'], value: params['_sendtoConstruct']}
+    )
+}
 
 function timeout(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -34,17 +50,9 @@ describe('constructor', () => {
     });
 
     beforeEach(async()=>{
-        instance = await Game.new(
-            gameId,//game id
-            numberOfCoins,//number of coins
-            gameTime,//game time
-            numberOfWinners,//number of winners
-            winnerWeight,//winnerWeight
-            gamePool, //game pool
-            lockIn, //lock_in percentage
-            playerContribution, //player contribution,
-            {from: accounts[0], value: sendtoConstruct}
-        );
+        params = default_params;
+        params['_account']=accounts[0];
+        instance = await createNewContract(params);
     });
 
     it("should have created an instance", function () {
@@ -84,17 +92,9 @@ describe('joinGame', () => {
 
     before(async function () {
         accounts = await web3.eth.getAccounts();
-        instance = await Game.new(
-            1,//game id
-            numberOfCoins,//number of coins
-            gameTime,//game time
-            numberOfWinners,//number of winners
-            winnerWeight,//winner weight
-            gamePool, //game pool
-            lockIn, //lock_in percentage
-            playerContribution, //player contribution,
-            {from: accounts[0], value: sendtoConstruct}
-        );
+        params = default_params;
+        params['_account']=accounts[0];
+        instance = await createNewContract(params);
 
         initGameState = await instance.getGameState.call();
 
@@ -149,17 +149,9 @@ describe('joinGame', () => {
 describe('startGame', () => {
   before(async function () {
     accounts = await web3.eth.getAccounts();
-    instance = await Game.new(
-        1,//game id
-        numberOfCoins,//number of coins
-        gameTime,//game time
-        numberOfWinners,//number of winners
-        winnerWeight,//winner weight
-        gamePool, //game pool
-        lockIn, //lock_in percentage
-        playerContribution, //player contribution,
-        {from: accounts[0], value: sendtoConstruct}
-    );
+    params = default_params;
+    params['_account']=accounts[0];
+    instance = await createNewContract(params);
 
     initGameState = await instance.getGameState.call();
 
@@ -191,27 +183,22 @@ describe('startGame', () => {
 
 describe('endGame', () => {
     before(async function () {
-      accounts = await web3.eth.getAccounts();
-      instance = await Game.new(
-          1,//game id
-          numberOfCoins,//number of coins
-          10,//game time
-          numberOfWinners,//number of winners
-          winnerWeight,//winner weight
-          gamePool, //game pool
-          lockIn, //lock_in percentage
-          playerContribution, //player contribution,
-          {from: accounts[0], value: sendtoConstruct}
-      );
-  
-      initGameState = await instance.getGameState.call();
-  
-      weightage = [1, 1, 1];
-      coinsSelected = [0, 1, 2];
-      await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[1], value:playerContribution});
-      await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[2], value:playerContribution});
-      await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[3], value:playerContribution});
-      await instance.startGame.sendTransaction();
+        accounts = await web3.eth.getAccounts();
+
+
+        params = default_params;
+        params['_account']=accounts[0];
+        params['_gameTime']=10;
+        instance = await createNewContract(params);
+    
+        initGameState = await instance.getGameState.call();
+    
+        weightage = [1, 1, 1];
+        coinsSelected = [0, 1, 2];
+        await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[1], value:playerContribution});
+        await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[2], value:playerContribution});
+        await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[3], value:playerContribution});
+        await instance.startGame.sendTransaction();
     });
   
     it('should have created deployed a Game contract, 3 players have joined the game and the game should have started', async function () {
@@ -251,17 +238,10 @@ describe('endGame', () => {
 describe('distributePrize', () => {
     before(async function () {
         accounts = await web3.eth.getAccounts();
-        instance = await Game.new(
-            1,//game id
-            numberOfCoins,//number of coins
-            3,//game time
-            numberOfWinners,//number of winners
-            winnerWeight,//winner weight
-            gamePool, //game pool
-            lockIn, //lock_in percentage
-            playerContribution, //player contribution,
-            {from: accounts[0], value: sendtoConstruct}
-        );
+        params = default_params;
+        params['_account']=accounts[0];
+        params['_gameTime']=3;
+        instance = await createNewContract(params);
     
         initGameState = await instance.getGameState.call();
     
@@ -303,5 +283,3 @@ describe('distributePrize', () => {
     });
 
 });
-
-
