@@ -112,6 +112,13 @@ describe('joinGame', () => {
         assert(curGameState[5] > initGameState[5]);
     });
 
+    it('should have upated the time', async function(){
+        var curGameState = await instance.getGameState.call();
+        await setTimeout(() => {; }, 2000);
+        assert(curGameState[11] < gameTime);
+        console.log('\tTime left: ',curGameState[11].toString() + 's');
+    });
+
     it('should return error if # of coins selected are less than'+numberOfCoins.toString(), async function(){
         coinsSelected = [1, 2];
         weightage = [1, 1];

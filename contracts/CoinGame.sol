@@ -19,6 +19,7 @@ contract Game {
     bool completed;
     address orgAddress = 0x0d77B3d1E78e6DE6e0326E08B4B9CF1791e4E236;
     address payable orgWallet = payable(address(orgAddress));
+    uint256 startTime = block.timestamp;
     // int256[] startPrice;
     // int256[] endPrice;
 
@@ -168,7 +169,9 @@ contract Game {
             uint256, // gameTime,
             uint256, // numWinners,
             uint256, // playerContribution
-            uint256 //account balance
+            uint256, //account balance
+            uint256,  //startTime
+            uint256   //ends in
         )
     {
         return (
@@ -181,7 +184,9 @@ contract Game {
             gameTime,
             numWinners,
             playerContribution,
-            address(this).balance
+            address(this).balance,
+            startTime,
+            gameTime * 1 - (block.timestamp - startTime)
         );
     }
 }
