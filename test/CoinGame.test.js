@@ -18,6 +18,12 @@ const lockIn = 10;
 const gameId = 1;
 const winnerWeight = [45000, 250000, 10000];
 
+
+function timeout(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
 describe('constructor', () => {
     var instance;
     
@@ -45,12 +51,11 @@ describe('constructor', () => {
 
 
     it("should return the state of the contract", async function  () {
-       var state = await instance.getGameState.call(); 
-    //    console.log('state of the contract: ', state);
+        await instance.getGameState.call(); 
     });
 
     it("should have contractBalance > 0 and <= " + sendtoConstruct.toString(), async function () {
-        var state = await instance.getGameState.call();
+        await instance.getGameState.call();
         assert(state[5] > 0 && state[5] <= sendtoConstruct); 
     });
 
@@ -113,8 +118,9 @@ describe('joinGame', () => {
     });
 
     it('should have upated the time', async function(){
+        await timeout(3000);
+        var curGameState = await instance.getGameState.sendTransaction();
         var curGameState = await instance.getGameState.call();
-        await setTimeout(() => {; }, 2000);
         assert(curGameState[11] < gameTime);
         console.log('\tTime left: ',curGameState[11].toString() + 's');
     });
@@ -178,7 +184,7 @@ describe('startGame', () => {
           error = false;
       }catch(e){;}
       assert(error);
-  })
+  });
 });
 
 describe('endGame', () => {
@@ -187,7 +193,7 @@ describe('endGame', () => {
       instance = await Game.new(
           1,//game id
           numberOfCoins,//number of coins
-          gameTime,//game time
+          10,//game time
           numberOfWinners,//number of winners
           winnerWeight,//winner weight
           gamePool, //game pool
@@ -200,16 +206,40 @@ describe('endGame', () => {
   
       weightage = [1, 1, 1];
       coinsSelected = [0, 1, 2];
-      // instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[3], value:playerContribution});
-      await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[1], value:playerContribution}).then(()=>{console.log('\tplayer 1 joined the game!')});
-      await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[2], value:playerContribution}).then(()=>{console.log('\tplayer 2 joined the game!')});
-      await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[3], value:playerContribution}).then(()=>{console.log('\tplayer 3 joined the game!')});
+      await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[1], value:playerContribution});
+      await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[2], value:playerContribution});
+      await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[3], value:playerContribution});
       await instance.startGame.sendTransaction();
     });
   
     it('should have created deployed a Game contract, 3 players have joined the game and the game should have started', async function () {
         ;
     });
-  })
+
+    it('should end the game if the deadline is not reached', async function () {
+        error = true;
+        try{
+            await instance.endGame.sendTransaction({from:accounts[0]});
+            error = false;
+        }catch(e){;}
+        assert(error);
+    });
+
+    it('should end the game if the deadline is reached', async function(){
+        await timeout(10000);
+        await instance.endGame.sendTransaction({from:accounts[0]});
+    });
+
+    it('should throw error if someone other than organizer calls endGame', async function () {
+        await timeout(10000);
+        error= true;
+        try{
+            await instance.endGame.sendTransaction({from:accounts[1]});
+            error = false;
+        }catch(e){;}
+        assert(error);
+    });
+
+});
 
 

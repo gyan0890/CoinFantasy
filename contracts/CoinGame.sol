@@ -122,14 +122,14 @@ contract Game {
         selfdestruct(payable(address(this)));
     }
 
-    function gameEnded() public returns (bool) {
+    function endGame() public returns (bool) {
         require(
             msg.sender == orgAddress,
             "only the organization can end the game"
         );
         require(live == true, "The game is not live");
         require(completed == false, "The game has already completed");
-        require(block.timestamp > gameTime, "Game is still in progress");
+        require(block.timestamp - startTime> gameTime * 1, "Game is still in progress");
 
         live = false;
         completed = true;
@@ -147,7 +147,7 @@ contract Game {
         );
         require(live == false, "The game is live");
         require(completed == true, "The game has not been completed");
-        require(block.timestamp > gameTime, "Game is still in progress");
+        require(block.timestamp - startTime > gameTime * 1, "Game is still in progress");
 
         for (i = 1; i <= winners.length; i++) {
             winners[i].transfer(winnerWeights[i]);
