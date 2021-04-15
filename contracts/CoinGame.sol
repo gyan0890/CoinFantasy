@@ -138,7 +138,7 @@ contract Game {
         return true;
     }
 
-    function distributePrize(address payable[] memory winners) public {
+    function distributePrize(address[] memory winners) public {
         uint256 i;
         require(winners.length == numWinners, "Mismatch in number of winners");
         require(
@@ -149,8 +149,8 @@ contract Game {
         require(completed == true, "The game has not been completed");
         require(block.timestamp - startTime > gameTime * 1, "Game is still in progress");
 
-        for (i = 1; i <= winners.length; i++) {
-            winners[i].transfer(winnerWeights[i]);
+        for (i = 0; i < winners.length; i++) {
+            payable(winners[i]).transfer(winnerWeights[i]);
         }
         payable(gameOwner).transfer(address(this).balance);
     }

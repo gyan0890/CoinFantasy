@@ -24,6 +24,8 @@ function timeout(ms) {
 }
 
 
+
+
 describe('constructor', () => {
     var instance;
     
@@ -55,7 +57,7 @@ describe('constructor', () => {
     });
 
     it("should have contractBalance > 0 and <= " + sendtoConstruct.toString(), async function () {
-        await instance.getGameState.call();
+        state = await instance.getGameState.call();
         assert(state[5] > 0 && state[5] <= sendtoConstruct); 
     });
 
@@ -163,7 +165,6 @@ describe('startGame', () => {
 
     weightage = [1, 1, 1];
     coinsSelected = [0, 1, 2];
-    // instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[3], value:playerContribution});
     await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[1], value:playerContribution}).then(()=>{console.log('\tplayer 1 joined the game!')});
     await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[2], value:playerContribution}).then(()=>{console.log('\tplayer 2 joined the game!')});
     await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[3], value:playerContribution}).then(()=>{console.log('\tplayer 3 joined the game!')});
@@ -186,6 +187,7 @@ describe('startGame', () => {
       assert(error);
   });
 });
+
 
 describe('endGame', () => {
     before(async function () {
@@ -216,7 +218,7 @@ describe('endGame', () => {
         ;
     });
 
-    it('should end the game if the deadline is not reached', async function () {
+    it('should throw error if the deadline is not reached', async function () {
         error = true;
         try{
             await instance.endGame.sendTransaction({from:accounts[0]});
@@ -225,16 +227,76 @@ describe('endGame', () => {
         assert(error);
     });
 
-    it('should end the game if the deadline is reached', async function(){
-        await timeout(10000);
-        await instance.endGame.sendTransaction({from:accounts[0]});
-    });
-
     it('should throw error if someone other than organizer calls endGame', async function () {
         await timeout(10000);
         error= true;
         try{
             await instance.endGame.sendTransaction({from:accounts[1]});
+            error = false;
+        }catch(e){;}
+        assert(error);
+    }); 
+
+    it('should end the game if the deadline is reached', async function(){
+        await timeout(10000);
+        await instance.endGame.sendTransaction({from:accounts[0]});
+    });
+
+    
+
+});
+
+
+
+describe('distributePrize', () => {
+    before(async function () {
+        accounts = await web3.eth.getAccounts();
+        instance = await Game.new(
+            1,//game id
+            numberOfCoins,//number of coins
+            3,//game time
+            numberOfWinners,//number of winners
+            winnerWeight,//winner weight
+            gamePool, //game pool
+            lockIn, //lock_in percentage
+            playerContribution, //player contribution,
+            {from: accounts[0], value: sendtoConstruct}
+        );
+    
+        initGameState = await instance.getGameState.call();
+    
+        weightage = [1, 1, 1];
+        coinsSelected = [0, 1, 2];
+        await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[1], value:playerContribution});
+        await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[2], value:playerContribution});
+        await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[3], value:playerContribution});
+        await instance.startGame.sendTransaction();
+        await timeout(3000);
+        await instance.endGame.sendTransaction({from:accounts[0]});
+      
+    });
+  
+    it('-created a game -3 players joined the game -game started -game ended', async function () {
+        ;
+    });
+
+
+    it('should distribute prize if the deadline is reached', async function(){
+        var balance = [await web3.eth.getBalance(accounts[1]), await web3.eth.getBalance(accounts[2]), await web3.eth.getBalance(accounts[3])];
+        // console.log('balance: ', balance);
+        await instance.distributePrize.sendTransaction([accounts[1], accounts[2], accounts[3]]);
+        var balance2 = [await web3.eth.getBalance(accounts[1]), await web3.eth.getBalance(accounts[2]), await web3.eth.getBalance(accounts[3])];
+        // console.log('balance2: ', balance2);
+        assert(balance < balance2);
+        
+        
+    });
+
+    it('should throw error if someone other than organizer calls distributePrize()', async function () {
+        await timeout(10000);
+        error= true;
+        try{
+            await instance.distributePrize.sendTransaction([accounts[1], accounts[2], accounts[3]], {from:accounts[1]});
             error = false;
         }catch(e){;}
         assert(error);
