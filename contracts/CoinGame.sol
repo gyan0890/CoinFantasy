@@ -115,6 +115,10 @@ contract Game {
     }
 
     function finalize() public {
+        require(
+            msg.sender == orgAddress,
+            "only the organization can end the game"
+        );
         orgWallet.transfer(address(this).balance);
         selfdestruct(payable(address(this)));
     }

@@ -291,19 +291,19 @@ describe('finalize and destroy game',() => {
         params = default_params;
         params['_account']=accounts[0];
         params['_gameTime']=3;
-        instance = await createNewContract(params);
+        params['_playerContribution'] = 2e15;
+         instance = await createNewContract(params);
     
         initGameState = await instance.getGameState.call();
     
         weightage = [1, 1, 1];
         coinsSelected = [0, 1, 2];
-        await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[1], value:playerContribution});
-        await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[2], value:playerContribution});
-        await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[3], value:playerContribution});
+        await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[1], value:params['_playerContribution']});
+        await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[2], value:params['_playerContribution']});
+        await instance.joinGame.sendTransaction(coinsSelected, weightage, {from:accounts[3], value:params['_playerContribution']});
         await instance.startGame.sendTransaction();
         await timeout(3000);
         await instance.endGame.sendTransaction({from:accounts[0]});
-        await instance.distributePrize.sendTransaction([accounts[1], accounts[2], accounts[3]]);
     });
 
     it('-created a game -3 players joined the game -game started -game ended -prizeDistributed', async function () {
@@ -315,7 +315,7 @@ describe('finalize and destroy game',() => {
         // await instance.finalize().sendTransaction(
         //     {from:accounts[0], value:playerContribution})
         // );
-        await instance.finalize.sendTransaction({from:account[0]});
+        await instance.finalize.sendTransaction({from:accounts[0]});
         var balance2 = await web3.eth.getBalance(accounts[0]);
         assert(balance < balance2);
     })
