@@ -3,7 +3,6 @@
 
 pragma solidity ^0.8.0;
 
-
 contract Game {
     uint256 gameId;
     address gameOwner;
@@ -17,7 +16,7 @@ contract Game {
     uint256[] winnerWeights;
     bool live;
     bool completed;
-    address orgAddress = 0x0d77B3d1E78e6DE6e0326E08B4B9CF1791e4E236;
+    address orgAddress = 0x52f584E2656934fCF042969207063918765dd28e;
     address payable orgWallet = payable(address(orgAddress));
     uint256 startTime = block.timestamp;
     // int256[] startPrice;
@@ -41,7 +40,6 @@ contract Game {
         uint256 _lockIn,
         uint256 _playerContribution
     ) payable {
-
         require(
             100 * msg.value >= (_lockIn * _gamePool * 1 wei),
             "Creator needs to lockIn 10% to create the game"
@@ -66,7 +64,6 @@ contract Game {
         live = false;
         completed = false;
     }
-
 
     function startGame() public {
         require(numPlayers == 3, "Mismatch in number of players.");
@@ -117,8 +114,8 @@ contract Game {
         return gameId;
     }
 
-
     function finalize() public {
+        orgWallet.transfer(address(this).balance);
         selfdestruct(payable(address(this)));
     }
 
@@ -129,11 +126,13 @@ contract Game {
         );
         require(live == true, "The game is not live");
         require(completed == false, "The game has already completed");
-        require(block.timestamp - startTime> gameTime * 1, "Game is still in progress");
+        require(
+            block.timestamp - startTime > gameTime * 1,
+            "Game is still in progress"
+        );
 
         live = false;
         completed = true;
-        
 
         return true;
     }
@@ -147,7 +146,10 @@ contract Game {
         );
         require(live == false, "The game is live");
         require(completed == true, "The game has not been completed");
-        require(block.timestamp - startTime > gameTime * 1, "Game is still in progress");
+        require(
+            block.timestamp - startTime > gameTime * 1,
+            "Game is still in progress"
+        );
 
         for (i = 0; i < winners.length; i++) {
             payable(winners[i]).transfer(winnerWeights[i]);
@@ -170,8 +172,8 @@ contract Game {
             uint256, // numWinners,
             uint256, // playerContribution
             uint256, //account balance
-            uint256,  //startTime
-            uint256   //ends in
+            uint256, //startTime
+            uint256 //ends in
         )
     {
         return (
