@@ -3,7 +3,11 @@
 
 pragma solidity ^0.8.0;
 
-contract Game {
+import "@openzeppelin/contracts/utils/Context.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
+
+contract Game{
     uint256 gameId;
     address gameOwner;
     uint256 gamePool;
@@ -16,9 +20,10 @@ contract Game {
     uint256[] winnerWeights;
     bool live;
     bool completed;
-    address orgAddress = 0x52f584E2656934fCF042969207063918765dd28e;
+    address orgAddress = 0x604BCD042D2d5B355ecE14B6aC3224d23F29a51c;
     address payable orgWallet = payable(address(orgAddress));
     uint256 startTime = block.timestamp;
+    ERC20 usdc;
     // int256[] startPrice;
     // int256[] endPrice;
 
@@ -63,6 +68,7 @@ contract Game {
         playerContribution = _playerContribution;
         live = false;
         completed = false;
+        usdc = ERC20(0x07865c6E87B9F70255377e024ace6630C1Eaa37F);
     }
 
     function startGame() public {

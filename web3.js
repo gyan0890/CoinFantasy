@@ -1,6 +1,8 @@
 // import Portis from '@portis/web3';
-import Web3 from 'web3';
-const {projectId} = require('./secrets.json');
+const Web3 = require('web3');
+const {mnemonic, projectId} = require('./secrets.json');
+const HDWalletProvider = require('truffle-hdwallet-provider');
+
 console.log(projectId);
 
 // const portis = new Portis('c4eb0bfb-bbcb-4e23-8c38-f41129f1469f', 'maticMumbai');
@@ -11,12 +13,10 @@ if(typeof window !== 'undefined' && typeof window.web3 !== 'undefined'){
     console.log('web3 available');
     web3 = new Web3(window.web3.currentProvider);
 }else {
+    var provider = new HDWalletProvider(mnemonic, projectId);
     console.log('injecting metamask from infura');
-    const provider = new Web3.providers.HttpProvider(
-        projectId
-    );
     
     web3 = new Web3(provider);
 }
 
-export default web3;
+module.exports = web3;

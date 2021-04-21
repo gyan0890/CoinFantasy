@@ -5,9 +5,9 @@ const CoinGame = artifacts.require("Game");
 
 
 /*ganache network*/
-const Web3 = require('web3');
-web3= new Web3(new Web3.providers.HttpProvider('http://localhost:7545'));
-var account = web3.eth.getAccounts().then((accounts)=>{return accounts[0]});
+// const Web3 = require('web3');
+// web3= new Web3(new Web3.providers.HttpProvider('http://localhost:7545'));
+const web3 = require('../web3');
 
 /*metamask or infura*/
 // const web3 = require('../web3');
@@ -16,9 +16,9 @@ var account = web3.eth.getAccounts().then((accounts)=>{return accounts[0]});
 
 // var accounts;
 
-
 module.exports = async function (deployer) {
-    acc = await account;
+  const accounts = await web3.eth.getAccounts();
+  const acc = accounts[0];
     console.log('deploying contract from account:', acc);
     deployer.deploy(
       CoinGame, 
