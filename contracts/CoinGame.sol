@@ -3,7 +3,6 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 
@@ -19,7 +18,7 @@ contract Game{
     uint256[] winnerWeights;
     bool live;
     bool completed;
-    address orgAddress = 0x960006b20Dc40BeDff211B60117944EF7c44e93A;
+    address orgAddress = 0x604BCD042D2d5B355ecE14B6aC3224d23F29a51c;
     address payable orgWallet = payable(address(orgAddress));
     uint256 startTime = block.timestamp;
     ERC20 usdc;
@@ -77,7 +76,7 @@ contract Game{
 
 
     function startGame() public {
-        require(numPlayers == 3, "Mismatch in number of players.");
+        require(numPlayers == 1, "Mismatch in number of players.");
         require(
             msg.sender == orgAddress,
             "only the organization can start the game"
@@ -182,19 +181,21 @@ contract Game{
         public
         view
         returns (
-            uint256, // gameId,
-            address, // gameOwner,
-            uint256, // gamePool,
-            uint256, // numPlayers,
-            uint256, // numCoins,
-            uint256, // contractBalance,
+            uint256,// gameId,                  -0
+            address,// gameOwner,               -1
+            uint256,// gamePool,                -2
+            uint256,// numPlayers,              -3
+            uint256,// numCoins,                -4
+            uint256,// contractBalance,         -5
             //gameTime - should be in seconds
-            uint256, // gameTime,
-            uint256, // numWinners,
-            uint256, // playerContribution
-            uint256, //account balance
-            uint256, //startTime
-            uint256 //ends in
+            uint256,// gameTime,                -6
+            uint256,// numWinners,              -7
+            uint256,// playerContribution       -8
+            uint256,//account balance           -9
+            uint256,//startTime                 -10
+            uint256//ends in                   -11
+            // bool,   //live                      -12
+            // bool    //completed                 -13
         )
     {
         return (
@@ -210,6 +211,8 @@ contract Game{
             address(this).balance,
             startTime,
             gameTime * 1 - (block.timestamp - startTime)
+            // live,
+            // completed
         );
     }
 }

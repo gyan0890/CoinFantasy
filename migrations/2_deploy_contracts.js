@@ -22,12 +22,12 @@ module.exports = async function (deployer) {
       CoinGame, 
       0,//game id
       7,//number of coins
-      14400,//game time
-      3,//number of winners
-      [450, 250, 100],
+      10,//game time
+      1,//number of winners
+      [550],
       1000, //game pool
       10, //lock_in percentage
-      200,//player contribution,
+      1000,//player contribution,
       {from: acc, value: 100000}
     );
   };
