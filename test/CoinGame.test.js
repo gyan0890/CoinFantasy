@@ -1,4 +1,5 @@
 const assert = require("assert");
+const { before } = require("underscore");
 const Game = artifacts.require("Game");
 const ERC20 = artifacts.require("ERC20");
 const web3 = require('../web3');
@@ -31,7 +32,7 @@ before(async function() {
 
 describe('usdc_contract', async  ()=> {
     it('access the deployed usdc contract', async ()=>{
-    usdc = ERC20(0x07865c6E87B9F70255377e024ace6630C1Eaa37F);
+    usdc = await ERC20.at(0x68ec573C119826db2eaEA1Efbfc2970cDaC869c4);
     await usdc.balanceOf.call(accounts[0]);
     });
 });
@@ -58,6 +59,17 @@ function timeout(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+
+var instance;
+describe('Game', async function () {
+    it('should create an instance of the contract', function () {
+        instance = await createNewContract(params);
+    })
+    it('player 1 should have joined', async function () {
+        await usdc.allocate.sendTransaction(instance.address, playerContribution*10, {from:accounts[1]});
+        await instance.joinGame.sendTransaction()
+    })
+});
 
 
 

@@ -64,7 +64,7 @@ contract Game{
         playerContribution = _playerContribution;
         live = false;
         completed = false;
-        usdc = ERC20(0x07865c6E87B9F70255377e024ace6630C1Eaa37F);
+        usdc = ERC20(0x68ec573C119826db2eaEA1Efbfc2970cDaC869c4);
     }
 
     function buyToken(uint256 amount) public returns (bool) {

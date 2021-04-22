@@ -87,7 +87,7 @@ module.exports = {
 
   // Set default mocha options here, use special reporters etc.
   mocha: {
-    timeout: 120000
+    timeout: 600000
   },
 
   // Configure your compilers
