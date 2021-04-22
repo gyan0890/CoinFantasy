@@ -20,27 +20,18 @@ const winnerWeight = [450, 250, 100];
 var usdc, accounts, default_params;
 
 before(async function() {
-    usdc = await USDC.new().then(function (params) {
-        console.log('created usdc instance');
-        return params;
-    });
-    accounts = await web3.eth.getAccounts().then(function (params) {
-        console.log('fetched accounts');
-        return params;
-    });
-    usdc_pool = await usdc.balanceOf(accounts[0]).then(function (params) {
-        console.log('usdc_pool fetched');
-        return params;        
-    });
+    usdc = await USDC.new();
+    accounts = await web3.eth.getAccounts();
+    usdc_pool = await usdc.balanceOf(accounts[0]);
 
     for(let i = 1; i < 10; i++){
-        await usdc.transfer.sendTransaction(accounts[i], usdc_pool/1e10, {from:accounts[0]}).then(function name(params) {
-            console.log('transaction ', i, ' completed');
-        });
+        await usdc.transfer.sendTransaction(accounts[i], usdc_pool/1e10, {from:accounts[0]});
     }
 
     default_params = {'_gameId':gameId, '_numberOfCoins': numberOfCoins, '_gameTime': gameTime, 
-    '_numberOfWinners':numberOfWinners, '_winnerWeight':winnerWeight, '_gamePool':gamePool, '_lockIn':lockIn, '_playerContribution':playerContribution, '_account':0, '_sendtoConstruct':sendtoConstruct, '_token':usdc.address};
+    '_numberOfWinners':numberOfWinners, '_winnerWeight':winnerWeight, '_gamePool':gamePool, 
+    '_lockIn':lockIn, '_playerContribution':playerContribution, '_account':0, '_sendtoConstruct':sendtoConstruct, 
+    '_token':usdc.address, '_orgAddress':accounts[0]};
 
     return;
 });
@@ -48,16 +39,9 @@ before(async function() {
 
 describe('usdc_contract', async  ()=> {
     it('access the deployed usdc contract', async ()=>{
-    console.log('account[0]: ', accounts[0]);
-    console.log('usdc address: ', usdc.address);
-    var balance = await usdc.balanceOf.call(accounts[0]);
-    console.log('usdc balance in account[0]: ', balance.toString());
+    await usdc.balanceOf.call(accounts[0]);
     });
 });
-
-
-
-
 
 
 
@@ -74,6 +58,7 @@ function createNewContract(params = default_params){
         params['_lockIn'],
         params['_playerContribution'],
         params['_token'],
+        params['_orgAddress'],
         {from: params['_account'], value: params['_sendtoConstruct']}
     )
 }
@@ -116,7 +101,7 @@ describe('constructor', () => {
     it("should return error if insufficient amount is sent by the game owner", async function(){
         var error = false;
         try{
-            const instance2 = instance = await Game.new(1, 7, 4*3600, 3, [450, 250000, 10000],  100000, 10, 200000,  {from: accounts[0], value: 0});
+            await Game.new(1, 7, 4*3600, 3, [450, 250000, 10000],  100000, 10, 200000,  {from: accounts[0], value: 0});
             console.log('no error, but error expected!')
         }catch(e){
             error = true;
@@ -144,7 +129,6 @@ describe('joinGame', () => {
         initGameState = await instance.getGameState.call();
         initUsdcBalance = await usdc.balanceOf.call(instance.address);
         await usdc.approve.sendTransaction(instance.address, playerContribution * 1e1, {from:accounts[3]});
-        // console.log('allowance: ', (await usdc.allowance.call(accounts[3], instance.address)).toString());
         
         await instance.joinGame.sendTransaction(coinsSelected, weightage, playerContribution, {from:accounts[3]});
 
@@ -324,10 +308,8 @@ describe('distributePrize', () => {
 
     it('should distribute prize if the deadline is reached', async function(){
         var balance = [await usdc.balanceOf.call(accounts[1]), await usdc.balanceOf.call(accounts[2]), await usdc.balanceOf.call(accounts[3])];
-        // console.log('balance: ', balance);
         await instance.distributePrize.sendTransaction([accounts[1], accounts[2], accounts[3]]);
         var balance2 = [await usdc.balanceOf.call(accounts[1]), await usdc.balanceOf.call(accounts[2]), await usdc.balanceOf.call(accounts[3])];
-        // console.log('balance2: ', balance2);
         assert(balance < balance2);
         
         
@@ -379,9 +361,6 @@ describe('finalize and destroy game',() => {
 
     it('Should transfer remaining balance to the organization account', async () => {
         var balance = await usdc.balanceOf.call(accounts[0]);
-        // await instance.finalize().sendTransaction(
-        //     {from:accounts[0], value:playerContribution})
-        // );
         await instance.finalize.sendTransaction({from:accounts[0]});
         var balance2 = await usdc.balanceOf.call(accounts[0]);
         assert(balance < balance2);

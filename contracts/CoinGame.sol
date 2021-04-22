@@ -19,7 +19,7 @@ contract Game{
     uint256[] winnerWeights;
     bool live;
     bool completed;
-    address orgAddress = 0x31D11905C32F583CeDB82D10794eAD6c892aEa8a;
+    address orgAddress;
     address payable orgWallet = payable(address(orgAddress));
     uint256 startTime = block.timestamp;
     ERC20 usdc;
@@ -41,7 +41,8 @@ contract Game{
         uint256 _gamePool,
         uint256 _lockIn,
         uint256 _playerContribution,
-        address token
+        address token,
+        address _orgAddress
     ) payable {
         require(
             100 * msg.value >= (_lockIn * _gamePool * 1 wei),
@@ -66,6 +67,7 @@ contract Game{
         live = false;
         completed = false;
         usdc = ERC20(token);
+        orgAddress = _orgAddress;
     }
 
     function buyToken(uint256 amount) public returns (bool) {

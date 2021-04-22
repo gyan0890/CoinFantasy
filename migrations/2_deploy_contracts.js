@@ -34,6 +34,7 @@ module.exports = async function (deployer) {
       10, //lock_in percentage
       200000,//player contribution,
       usdc_contract.address,
+      accounts[0],
       {from: acc, value: 100000}
     );
   };
