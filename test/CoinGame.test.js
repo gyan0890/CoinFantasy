@@ -1,14 +1,13 @@
 const assert = require("assert");
 const Game = artifacts.require("Game");
-const USDC = artifacts.require("USDC_coin");
-
+const ERC20 = artifacts.require("ERC20");
 const web3 = require('../web3');
 
 
 
 //cost
 const sendtoConstruct = 100000;
-const playerContribution = 2000;
+const playerContribution = 200;
 const numberOfCoins = 3;
 const gameTime = 4*3600;
 const numberOfWinners = 3;
@@ -20,18 +19,11 @@ const winnerWeight = [450, 250, 100];
 var usdc, accounts, default_params;
 
 before(async function() {
-    usdc = await USDC.new();
     accounts = await web3.eth.getAccounts();
-    usdc_pool = await usdc.balanceOf(accounts[0]);
-
-    for(let i = 1; i < 10; i++){
-        await usdc.transfer.sendTransaction(accounts[i], usdc_pool/1e10, {from:accounts[0]});
-    }
 
     default_params = {'_gameId':gameId, '_numberOfCoins': numberOfCoins, '_gameTime': gameTime, 
     '_numberOfWinners':numberOfWinners, '_winnerWeight':winnerWeight, '_gamePool':gamePool, 
-    '_lockIn':lockIn, '_playerContribution':playerContribution, '_account':0, '_sendtoConstruct':sendtoConstruct, 
-    '_token':usdc.address, '_orgAddress':accounts[0]};
+    '_lockIn':lockIn, '_playerContribution':playerContribution, '_account':0, '_sendtoConstruct':sendtoConstruct};
 
     return;
 });
@@ -39,6 +31,7 @@ before(async function() {
 
 describe('usdc_contract', async  ()=> {
     it('access the deployed usdc contract', async ()=>{
+    usdc = ERC20(0x07865c6E87B9F70255377e024ace6630C1Eaa37F);
     await usdc.balanceOf.call(accounts[0]);
     });
 });
@@ -57,8 +50,6 @@ function createNewContract(params = default_params){
         params['_gamePool'],
         params['_lockIn'],
         params['_playerContribution'],
-        params['_token'],
-        params['_orgAddress'],
         {from: params['_account'], value: params['_sendtoConstruct']}
     )
 }
@@ -116,8 +107,6 @@ describe('joinGame', () => {
     var instance;
     var coinsSelected = [0, 5, 3, 2, 6, 9, 11];
     var weightage = [1, 1, 1, 1, 1, 1, 1];
-    var initGameState;
-    var usdcBalance;
     var gameIdReturned;
 
     before(async function () {

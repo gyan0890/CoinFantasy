@@ -19,7 +19,7 @@ contract Game{
     uint256[] winnerWeights;
     bool live;
     bool completed;
-    address orgAddress;
+    address orgAddress = 0x960006b20Dc40BeDff211B60117944EF7c44e93A;
     address payable orgWallet = payable(address(orgAddress));
     uint256 startTime = block.timestamp;
     ERC20 usdc;
@@ -40,9 +40,7 @@ contract Game{
         uint256[] memory _winnerWeights,
         uint256 _gamePool,
         uint256 _lockIn,
-        uint256 _playerContribution,
-        address token,
-        address _orgAddress
+        uint256 _playerContribution
     ) payable {
         require(
             100 * msg.value >= (_lockIn * _gamePool * 1 wei),
@@ -66,8 +64,7 @@ contract Game{
         playerContribution = _playerContribution;
         live = false;
         completed = false;
-        usdc = ERC20(token);
-        orgAddress = _orgAddress;
+        usdc = ERC20(0x07865c6E87B9F70255377e024ace6630C1Eaa37F);
     }
 
     function buyToken(uint256 amount) public returns (bool) {
@@ -176,7 +173,7 @@ contract Game{
         for (i = 0; i < winners.length; i++) {
             usdc.transfer(winners[i], winnerWeights[i]);
         }
-        // payable(gameOwner).transfer(address(this).balance);
+        payable(gameOwner).transfer(address(this).balance);
         uint256 balance = usdc.balanceOf(address(this));
         usdc.transfer(gameOwner, balance);
     }
