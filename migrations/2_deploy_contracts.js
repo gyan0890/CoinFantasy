@@ -20,14 +20,16 @@ module.exports = async function (deployer) {
     console.log('deploying contract from account:', acc);
     await deployer.deploy(
       CoinGame, 
-      0,//game id
-      7,//number of coins
-      10,//game time
-      1,//number of winners
-      [550],
-      1000, //game pool
-      10, //lock_in percentage
-      1000,//player contribution,
+      0,//game id                                     -0
+      7,//number of coins                             -1
+      10,//game time                                  -2
+      1,//                                            -3
+      1,//number of winners                           -4
+      [550],//                                        -5
+      1000, //game pool                               -6
+      10, //lock_in percentage                        -7
+      1000,//player contribution,                     -8
+      '0x07865c6e87b9f70255377e024ace6630c1eaa37f',// -9
       {from: acc, value: 100000}
     );
   };

@@ -10,12 +10,13 @@ contract Game{
     uint256 gameId;
     address gameOwner;
     uint256 gamePool;
-    uint256 numPlayers;
+    uint256 curNumPlayers;
     uint256 numCoins;
     uint256 gameTime;
     uint256 numWinners;
     uint256 playerContribution;
     uint256[] winnerWeights;
+    uint256 numPlayers;
     bool live;
     bool completed;
     address orgAddress = 0x604BCD042D2d5B355ecE14B6aC3224d23F29a51c;
@@ -32,14 +33,16 @@ contract Game{
     mapping(uint256 => Player) players;
 
     constructor(
-        uint256 _gameId,
-        uint256 _numCoins,
-        uint256 _gameTime,
-        uint256 _numWinners,
-        uint256[] memory _winnerWeights,
-        uint256 _gamePool,
-        uint256 _lockIn,
-        uint256 _playerContribution
+        uint256 _gameId,//                      -0
+        uint256 _numCoins,//                    -1
+        uint256 _gameTime,//                    -2
+        uint256 _numPlayers,//                  -3
+        uint256 _numWinners,//                  -4
+        uint256[] memory _winnerWeights,//      -5
+        uint256 _gamePool,//                    -6
+        uint256 _lockIn,//                      -7
+        uint256 _playerContribution,//          -8
+        address _token//                        -9
     ) payable {
         require(
             100 * msg.value >= (_lockIn * _gamePool * 1 wei),
@@ -55,7 +58,8 @@ contract Game{
 
         gameId = _gameId;
         gameOwner = msg.sender;
-        numPlayers = 0;
+        numPlayers = _numPlayers;
+        curNumPlayers = 0;
         numCoins = _numCoins;
         gameTime = _gameTime;
         numWinners = _numWinners;
@@ -63,7 +67,7 @@ contract Game{
         playerContribution = _playerContribution;
         live = false;
         completed = false;
-        usdc = ERC20(0x68ec573C119826db2eaEA1Efbfc2970cDaC869c4);
+        usdc = ERC20(_token);
     }
 
     function buyToken(uint256 amount) public returns (bool) {
@@ -76,7 +80,7 @@ contract Game{
 
 
     function startGame() public {
-        require(numPlayers == 1, "Mismatch in number of players.");
+        require(curNumPlayers == numPlayers, "Mismatch in number of players.");
         require(
             msg.sender == orgAddress,
             "only the organization can start the game"
@@ -88,7 +92,7 @@ contract Game{
         public
         returns (uint256 _gameId)
     {
-        require(numPlayers < 3, "The player count reached!");
+        require(curNumPlayers < numPlayers, "The player count reached!");
         require(live == false, "The game has started");
         require(completed == false, "The game has ended");
         require(
@@ -117,7 +121,7 @@ contract Game{
             "Weightage is not proper"
         );
 
-        Player storage newPlayer = players[numPlayers++];
+        Player storage newPlayer = players[curNumPlayers++];
         newPlayer.player = msg.sender;
         newPlayer.coins = coins;
         newPlayer.weightage = weightage;
@@ -193,16 +197,16 @@ contract Game{
             uint256,// playerContribution       -8
             uint256,//account balance           -9
             uint256,//startTime                 -10
-            uint256//ends in                   -11
-            // bool,   //live                      -12
-            // bool    //completed                 -13
+            uint256//ends in                    -11
+            // bool,   //live                   -12
+            // bool    //completed              -13
         )
     {
         return (
             gameId,
             gameOwner,
             gamePool,
-            numPlayers,
+            curNumPlayers,
             numCoins,
             address(this).balance,
             gameTime,
