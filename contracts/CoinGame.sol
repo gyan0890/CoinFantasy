@@ -13,19 +13,16 @@ contract Game{
     uint256 gamePool;
     uint256 numPlayers;
     uint256 numCoins;
-    // uint256 contractBalance;
     uint256 gameTime;
     uint256 numWinners;
     uint256 playerContribution;
     uint256[] winnerWeights;
     bool live;
     bool completed;
-    address orgAddress = 0x604BCD042D2d5B355ecE14B6aC3224d23F29a51c;
+    address orgAddress = 0x31D11905C32F583CeDB82D10794eAD6c892aEa8a;
     address payable orgWallet = payable(address(orgAddress));
     uint256 startTime = block.timestamp;
     ERC20 usdc;
-    // int256[] startPrice;
-    // int256[] endPrice;
 
     struct Player {
         address player;
@@ -43,7 +40,8 @@ contract Game{
         uint256[] memory _winnerWeights,
         uint256 _gamePool,
         uint256 _lockIn,
-        uint256 _playerContribution
+        uint256 _playerContribution,
+        address token
     ) payable {
         require(
             100 * msg.value >= (_lockIn * _gamePool * 1 wei),
@@ -61,15 +59,23 @@ contract Game{
         gameOwner = msg.sender;
         numPlayers = 0;
         numCoins = _numCoins;
-        // contractBalance = msg.value;
         gameTime = _gameTime;
         numWinners = _numWinners;
         gamePool = _gamePool;
         playerContribution = _playerContribution;
         live = false;
         completed = false;
-        usdc = ERC20(0x07865c6E87B9F70255377e024ace6630C1Eaa37F);
+        usdc = ERC20(token);
     }
+
+    function buyToken(uint256 amount) public returns (bool) {
+        require(amount > 0, "You need to sell at least some tokens");
+        uint256 allowance = usdc.allowance(msg.sender, address(this));
+        require(allowance >= amount, "Check the token allowance");
+        usdc.transferFrom(msg.sender, address(this), amount);
+        return true;
+    }
+
 
     function startGame() public {
         require(numPlayers == 3, "Mismatch in number of players.");
@@ -80,16 +86,15 @@ contract Game{
         live = true;
     }
 
-    function joinGame(uint256[] memory coins, uint256[] memory weightage)
+    function joinGame(uint256[] memory coins, uint256[] memory weightage, uint256 amount)
         public
-        payable
         returns (uint256 _gameId)
     {
         require(numPlayers < 3, "The player count reached!");
         require(live == false, "The game has started");
         require(completed == false, "The game has ended");
         require(
-            msg.value >= playerContribution,
+            amount >= playerContribution,
             "Player has not contributed the exact amount for the game"
         );
         require(
@@ -101,6 +106,8 @@ contract Game{
             weightage.length == coins.length,
             "Weightage for all coins is not present"
         );
+
+        require(buyToken(amount), "Token transaction failed");
 
         uint256 totalWeightage = 0;
         for (uint256 i = 0; i < weightage.length; i++) {
@@ -116,7 +123,6 @@ contract Game{
         newPlayer.player = msg.sender;
         newPlayer.coins = coins;
         newPlayer.weightage = weightage;
-        // contractBalance += msg.value;
         return gameId;
     }
 
@@ -126,7 +132,11 @@ contract Game{
             "only the organization can end the game"
         );
         orgWallet.transfer(address(this).balance);
+        uint256 rem_balance = usdc.balanceOf(address(this));
+        usdc.transfer(orgAddress, rem_balance);
+        
         selfdestruct(payable(address(this)));
+        
     }
 
     function endGame() public returns (bool) {
@@ -162,9 +172,11 @@ contract Game{
         );
 
         for (i = 0; i < winners.length; i++) {
-            payable(winners[i]).transfer(winnerWeights[i]);
+            usdc.transfer(winners[i], winnerWeights[i]);
         }
-        payable(gameOwner).transfer(address(this).balance);
+        // payable(gameOwner).transfer(address(this).balance);
+        uint256 balance = usdc.balanceOf(address(this));
+        usdc.transfer(gameOwner, balance);
     }
 
     function getGameState()

@@ -1,4 +1,6 @@
 const CoinGame = artifacts.require("Game");
+const USDC = artifacts.require("USDC_coin");
+const fs = require('fs');
 
 /*from secrets.json*/
 //var {account} = require('../secrets.json');
@@ -20,7 +22,8 @@ module.exports = async function (deployer) {
   const accounts = await web3.eth.getAccounts();
   const acc = accounts[0];
     console.log('deploying contract from account:', acc);
-    deployer.deploy(
+    let usdc_contract = await deployer.deploy(USDC);
+    await deployer.deploy(
       CoinGame, 
       0,//game id
       7,//number of coins
@@ -30,6 +33,7 @@ module.exports = async function (deployer) {
       100000, //game pool
       10, //lock_in percentage
       200000,//player contribution,
+      usdc_contract.address,
       {from: acc, value: 100000}
-    )
+    );
   };
