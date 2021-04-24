@@ -71,7 +71,7 @@ contract Game{
     }
 
     function buyToken(uint256 amount) public returns (bool) {
-        require(amount > 0, "You need to sell at least some tokens");
+        require(amount > 0, "You can't send 0 tokens");
         uint256 allowance = usdc.allowance(msg.sender, address(this));
         require(allowance >= amount, "Check the token allowance");
         usdc.transferFrom(msg.sender, address(this), amount);
@@ -109,7 +109,7 @@ contract Game{
             "Weightage for all coins is not present"
         );
 
-        require(buyToken(amount), "Token transaction failed");
+        
 
         uint256 totalWeightage = 0;
         for (uint256 i = 0; i < weightage.length; i++) {
@@ -125,6 +125,9 @@ contract Game{
         newPlayer.player = msg.sender;
         newPlayer.coins = coins;
         newPlayer.weightage = weightage;
+
+        require(buyToken(amount), "Token transaction failed");
+
         return gameId;
     }
 

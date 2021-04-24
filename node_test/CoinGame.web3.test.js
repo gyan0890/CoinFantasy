@@ -2,7 +2,6 @@ const assert = require("assert");
 const Game = require("../build/contracts/Game.json");
 const ERC20 = require("../build/contracts/ERC20.json");
 const web3 = require('../web3');
-const { before } = require("underscore");
 
 
 const sendtoConstruct = 100000;
@@ -77,33 +76,37 @@ describe('Game', async function () {
         params['_account']=accounts[0];
         instance = await createNewContract(params);
         console.log('\tcontract address : ', instance.options.address);
-    }).timeout(60000);
+    }).timeout(300000);
 
     it('player 1 should have joined', async function () {
+        console.log('\t account balance(before): ', await usdc.methods.balanceOf(accounts[0]).call());
+        console.log('\t contract balance(before): ', await usdc.methods.balanceOf(instance.options.address).call());
         await usdc.methods.approve(instance.options.address, playerContribution*10).send({from:accounts[0]});
         await instance.methods.joinGame(coinsSelected, weightage, playerContribution).send({from:accounts[0]});
-    }).timeout(60000);
+        console.log('\t contract balance(after): ', await usdc.methods.balanceOf(instance.options.address).call());
+        console.log('\t account balance(after): ', await usdc.methods.balanceOf(accounts[0]).call());
+    }).timeout(300000);
     it('starts the game', async function () {
         await instance.methods.startGame().send({from:accounts[0]});
-    }).timeout(60000);
+    }).timeout(300000);
   
 
     it('ends game', async function () {
         await timeOut(10);
         await instance.methods.endGame().send({from:accounts[0]});
-    }).timeout(60000);
+    }).timeout(300000);
 
 
     it('should distribute prize', async function () {
         initBalance = [await usdc.methods.balanceOf(accounts[0]).call()];
         await instance.methods.distributePrize([accounts[0]]).send({from:accounts[0]});
-    }).timeout(60000);
+    }).timeout(300000);
 
 
     it('should have sent back the tokens', async function () {
         let currentBalance = [await usdc.methods.balanceOf(accounts[0]).call()];
         assert(currentBalance[0] > initBalance[0]);
-    }).timeout(60000);
+    }).timeout(300000);
 
     it('exits the process', function () {
         process.exit();
