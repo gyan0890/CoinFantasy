@@ -41,18 +41,16 @@ describe('usdc_contract', async  ()=> {
 async function createNewContract(params = default_params){
     return new Promise( async function (resolve, reject){
         const contract = await new web3.eth.Contract(Game.abi);
-        const deployedContract = contract.deploy({
+        const deployedContract = await contract.deploy({
             data: Game.bytecode,
             arguments:[
             
             params['_token'],
             ]               
         }).send({from: params['_account']});
-        console.log('to approve');
-        await usdc.methods.approve(instance.options.address, params['_lockIn']).send({from:accounts[0]}).then(function (error){
+        await usdc.methods.approve(deployedContract.options.address, params['_lockIn']).send({from:accounts[0]}).then(function (error){
             console.log(error);
         });
-        console.log('testing');
         await deployedContract.methods.pseudoConstructor(
             params['_gameId'],//                -0
             params['_numberOfCoins'],//         -1      

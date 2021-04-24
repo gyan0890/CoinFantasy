@@ -37,19 +37,27 @@ describe('usdc_contract', async  ()=> {
 
 
 async function createNewContract(params = default_params){
-    return Game.new(
-        params['_gameId'],
-        params['_numberOfCoins'],
-        params['_gameTime'],
-        params['_numPlayers'],
-        params['_numberOfWinners'],
-        params['_winnerWeight'],
-        params['_gamePool'],
-        params['_lockIn'],
-        params['_playerContribution'],
-        params['_token'],
-        {from: params['_account'], value: params['_sendtoConstruct']}
-    )
+    return new Promise( async function (resolve, reject){
+        const deployedContract = await Game.new(params['_token'], {from:accounts[0]});
+        await usdc.approve.sendTransaction(deployedContract.address, params['_lockIn'], {from:accounts[0]}).then(function (msg, error){
+            console.log(error);
+        });
+        await deployedContract.pseudoConstructor.sendTransaction(
+            params['_gameId'],//                -0
+            params['_numberOfCoins'],//         -1      
+            params['_gameTime'],//              -2
+            params['_numPlayers'],//            -3
+            params['_numberOfWinners'],//       -4
+            params['_winnerWeight'],//          -5
+            params['_gamePool'],//              -6      
+            params['_lockIn'],//                -7
+            params['_playerContribution'],//    -8
+            {
+                from:accounts[0]
+            }
+        );
+        return resolve(deployedContract);
+    });
 }
 
 function timeout(ms) {
