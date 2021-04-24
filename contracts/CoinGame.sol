@@ -19,6 +19,7 @@ contract Game{
     uint256 numPlayers;
     bool live;
     bool completed;
+    bool activated;
     address orgAddress = 0x604BCD042D2d5B355ecE14B6aC3224d23F29a51c;
     address payable orgWallet = payable(address(orgAddress));
     uint256 startTime = block.timestamp;
@@ -33,6 +34,13 @@ contract Game{
     mapping(uint256 => Player) players;
 
     constructor(
+        address _token
+    ){
+        activated = false;
+        usdc = ERC20(_token);
+    }
+
+    function pseudoConstructor(
         uint256 _gameId,//                      -0
         uint256 _numCoins,//                    -1
         uint256 _gameTime,//                    -2
@@ -41,13 +49,8 @@ contract Game{
         uint256[] memory _winnerWeights,//      -5
         uint256 _gamePool,//                    -6
         uint256 _lockIn,//                      -7
-        uint256 _playerContribution,//          -8
-        address _token//                        -9
-    ) payable {
-        require(
-            100 * msg.value >= (_lockIn * _gamePool * 1 wei),
-            "Creator needs to lockIn 10% to create the game"
-        );
+        uint256 _playerContribution//           -8
+    ) public {
 
         require(
             _numWinners == _winnerWeights.length,
@@ -62,12 +65,13 @@ contract Game{
         curNumPlayers = 0;
         numCoins = _numCoins;
         gameTime = _gameTime;
-        numWinners = _numWinners;
+        numWinners = _numWinners;   
         gamePool = _gamePool;
         playerContribution = _playerContribution;
         live = false;
         completed = false;
-        usdc = ERC20(_token);
+        require(buyToken(_lockIn), "Token transaction failed");
+        activated = true;
     }
 
     function buyToken(uint256 amount) public returns (bool) {
@@ -80,6 +84,7 @@ contract Game{
 
 
     function startGame() public {
+        require(activated, "The game is not yet activated");
         require(curNumPlayers == numPlayers, "Mismatch in number of players.");
         require(
             msg.sender == orgAddress,
@@ -92,6 +97,7 @@ contract Game{
         public
         returns (uint256 _gameId)
     {
+        require(activated, "The game is not yet activated");
         require(curNumPlayers < numPlayers, "The player count reached!");
         require(live == false, "The game has started");
         require(completed == false, "The game has ended");
@@ -145,6 +151,7 @@ contract Game{
     }
 
     function endGame() public returns (bool) {
+        require(activated, "The game is not yet activated");
         require(
             msg.sender == orgAddress,
             "only the organization can end the game"
@@ -163,6 +170,7 @@ contract Game{
     }
 
     function distributePrize(address[] memory winners) public {
+        require(activated, "The game is not yet activated");
         uint256 i;
         require(winners.length == numWinners, "Mismatch in number of winners");
         require(
@@ -205,6 +213,7 @@ contract Game{
             // bool    //completed              -13
         )
     {
+        require(activated, "The game is not activated");
         return (
             gameId,
             gameOwner,

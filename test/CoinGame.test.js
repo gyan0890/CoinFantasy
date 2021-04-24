@@ -11,7 +11,7 @@ const gameTime = 10;
 const numPlayers = 1;
 const numberOfWinners = 1;
 const gamePool = 1000;
-const lockIn = 10;
+const lockIn = 1000;
 const gameId = 1;
 const winnerWeight = [550];
 
@@ -36,7 +36,7 @@ describe('usdc_contract', async  ()=> {
 
 
 
-function createNewContract(params = default_params){
+async function createNewContract(params = default_params){
     return Game.new(
         params['_gameId'],
         params['_numberOfCoins'],

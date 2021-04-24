@@ -2,6 +2,7 @@ const assert = require("assert");
 const Game = require("../build/contracts/Game.json");
 const ERC20 = require("../build/contracts/ERC20.json");
 const web3 = require('../web3');
+const { reject } = require("any-promise");
 
 
 const sendtoConstruct = 100000;
@@ -11,7 +12,7 @@ const gameTime = 10;
 const numPlayers = 1;
 const numberOfWinners = 1;
 const gamePool = 1000;
-const lockIn = 10;
+const lockIn = 1000;
 const gameId = 1;
 const winnerWeight = [550];
 const token = '0x68ec573C119826db2eaEA1Efbfc2970cDaC869c4';
@@ -38,23 +39,33 @@ describe('usdc_contract', async  ()=> {
 
 
 async function createNewContract(params = default_params){
-    const contract = await new web3.eth.Contract(Game.abi);
-    const deployedContract = contract.deploy({
-        data: Game.bytecode,
-        arguments:[
-        params['_gameId'],//                -0
-        params['_numberOfCoins'],//         -1      
-        params['_gameTime'],//              -2
-        params['_numPlayers'],//            -3
-        params['_numberOfWinners'],//       -4
-        params['_winnerWeight'],//          -5
-        params['_gamePool'],//              -6      
-        params['_lockIn'],//                -7
-        params['_playerContribution'],//    -8
-        params['_token'],//                 -9
-        ]//               
-    }).send({from: params['_account'], value: params['_sendtoConstruct']});
-    return deployedContract;
+    return new Promise( async function (resolve, reject){
+        const contract = await new web3.eth.Contract(Game.abi);
+        const deployedContract = contract.deploy({
+            data: Game.bytecode,
+            arguments:[
+            
+            params['_token'],
+            ]               
+        }).send({from: params['_account']});
+        console.log('to approve');
+        await usdc.methods.approve(instance.options.address, params['_lockIn']).send({from:accounts[0]}).then(function (error){
+            console.log(error);
+        });
+        console.log('testing');
+        await deployedContract.methods.pseudoConstructor(
+            params['_gameId'],//                -0
+            params['_numberOfCoins'],//         -1      
+            params['_gameTime'],//              -2
+            params['_numPlayers'],//            -3
+            params['_numberOfWinners'],//       -4
+            params['_winnerWeight'],//          -5
+            params['_gamePool'],//              -6      
+            params['_lockIn'],//                -7
+            params['_playerContribution'],//    -8
+        ).send({from:accounts[0]});
+        return resolve(deployedContract);
+    });
 }
 
 function timeOut(ms) {
