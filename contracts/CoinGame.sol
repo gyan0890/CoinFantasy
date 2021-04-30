@@ -50,19 +50,19 @@ contract Game{
         uint256 _gameId,//                      -0
         uint256 _numCoins,//                    -1
         uint256 _gameTime,//                    -2
-        uint256 _waitTime,//                    -5
-        uint256 _numPlayers,//                  -3
-        uint256 _numWinners,//                  -4
-        uint256[] memory _winnerWeights,//      -5
-        uint256 _gamePool,//                    -6
-        uint256 _lockIn,//                      -7
-        uint256 _playerContribution//           -8
+        uint256 _waitTime,//                    -3
+        uint256 _numPlayers,//                  -4
+        uint256 _numWinners,//                  -5
+        uint256[] memory _winnerWeights,//      -6
+        uint256 _gamePool,//                    -7
+        uint256 _lockIn,//                      -8
+        uint256 _playerContribution//           -9
     ) public {
 
-        require(
-            _numWinners == _winnerWeights.length,
-            "Number of winners doesn't match with the weightage of winners"
-        );
+        // require(
+        //     _numWinners == _winnerWeights.length,
+        //     "Number of winners doesn't match with the weightage of winners"
+        // );
         require(gameOwner == msg.sender, "someone else created the contract");
 
 
