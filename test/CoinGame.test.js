@@ -1,6 +1,7 @@
 const assert = require("assert");
 const Game = artifacts.require("Game");
 const ERC20 = artifacts.require("ERC20");
+const USDC = artifacts.require("USDC_coin");
 
 
 
@@ -17,7 +18,7 @@ const winnerWeight = [550];
 
 var usdc, accounts, default_params;
 
-accounts = ['0x604BCD042D2d5B355ecE14B6aC3224d23F29a51c'];
+accounts = ['0x1c4804d9FA63E90dED85aFcCe779b9dD67E00f3a'];
 
 default_params = {'_gameId':gameId, '_numberOfCoins': numberOfCoins, '_gameTime': gameTime, '_numPlayers': numPlayers,
 '_numberOfWinners':numberOfWinners, '_winnerWeight':winnerWeight, '_gamePool':gamePool, 
@@ -27,7 +28,8 @@ default_params = {'_gameId':gameId, '_numberOfCoins': numberOfCoins, '_gameTime'
 
 describe('usdc_contract', async  ()=> {
     it('access the deployed usdc contract', async ()=>{
-    usdc = await ERC20.at(default_params['_token']);
+    usdc = await USDC.new();
+    default_params['_token'] = usdc.address;
     console.log('account[0] balance: ', (await usdc.balanceOf.call(accounts[0])).toString());
     });
 });
