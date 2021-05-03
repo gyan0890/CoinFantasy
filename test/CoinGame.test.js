@@ -1,6 +1,7 @@
 const assert = require("assert");
 const Game = artifacts.require("Game");
 const ERC20 = artifacts.require("ERC20");
+const USDC = artifacts.require("USDC_coin");
 
 
 
@@ -17,12 +18,30 @@ const winnerWeight = [550];
 
 var usdc, accounts, default_params;
 
-accounts = ['0x604BCD042D2d5B355ecE14B6aC3224d23F29a51c'];
+accounts = ['0x4CB1777965c956E620648245794145382Bdfd620'];
 
 default_params = {'_gameId':gameId, '_numberOfCoins': numberOfCoins, '_gameTime': gameTime, '_numPlayers': numPlayers,
 '_numberOfWinners':numberOfWinners, '_winnerWeight':winnerWeight, '_gamePool':gamePool, 
 '_lockIn':lockIn, '_playerContribution':playerContribution, '_account':accounts[0], '_sendtoConstruct':sendtoConstruct,
 '_token':'0x68ec573c119826db2eaea1efbfc2970cdac869c4'};
+
+
+before(async function() {
+    usdc = await USDC.new();
+    accounts = await web3.eth.getAccounts();
+    usdc_pool = await usdc.balanceOf(accounts[0]);
+
+    for(let i = 1; i < 10; i++){
+        await usdc.transfer.sendTransaction(accounts[i], usdc_pool/1e10, {from:accounts[0]});
+    }
+
+    default_params = {'_gameId':gameId, '_numberOfCoins': numberOfCoins, '_gameTime': gameTime, 
+    '_numberOfWinners':numberOfWinners, '_winnerWeight':winnerWeight, '_gamePool':gamePool, 
+    '_lockIn':lockIn, '_playerContribution':playerContribution, '_account':0, '_sendtoConstruct':sendtoConstruct, 
+    '_token':usdc.address, '_orgAddress':accounts[0]};
+
+    return;
+});
 
 
 describe('usdc_contract', async  ()=> {
@@ -33,15 +52,16 @@ describe('usdc_contract', async  ()=> {
 });
 
 
-
+function timeout(s) {
+    return new Promise(resolve => setTimeout(resolve, 1e3*s));
+}
 
 
 async function createNewContract(params = default_params){
     return new Promise( async function (resolve, reject){
+        params['_token'] = usdc.address;
         const deployedContract = await Game.new(params['_token'], {from:accounts[0]});
-        await usdc.approve.sendTransaction(deployedContract.address, params['_lockIn'], {from:accounts[0]}).then(function (msg, error){
-            console.log(error);
-        });
+        await usdc.approve.sendTransaction(deployedContract.address, params['_lockIn']*10, {from:accounts[0]});
         await deployedContract.pseudoConstructor.sendTransaction(
             params['_gameId'],//                -0
             params['_numberOfCoins'],//         -1      
@@ -60,9 +80,7 @@ async function createNewContract(params = default_params){
     });
 }
 
-function timeout(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+
 
 
 var instance;
@@ -87,7 +105,7 @@ describe('Game', async function () {
   
 
     it('ends game', async function () {
-        await timeout(10);
+        await timeout(12);
         await instance.endGame.sendTransaction({from:accounts[0]});
     });
 

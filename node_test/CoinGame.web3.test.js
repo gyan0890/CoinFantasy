@@ -48,9 +48,7 @@ async function createNewContract(params = default_params){
             params['_token'],
             ]               
         }).send({from: params['_account']});
-        await usdc.methods.approve(deployedContract.options.address, params['_lockIn']).send({from:accounts[0]}).then(function (error){
-            console.log(error);
-        });
+        await usdc.methods.approve(deployedContract.options.address, params['_lockIn']).send({from:accounts[0]});
         await deployedContract.methods.pseudoConstructor(
             params['_gameId'],//                -0
             params['_numberOfCoins'],//         -1      
@@ -96,19 +94,27 @@ describe('Game', async function () {
         console.log('\t account balance(after): ', await usdc.methods.balanceOf(accounts[0]).call());
     }).timeout(300000);
     it('starts the game', async function () {
-        await instance.methods.startGame().send({from:accounts[0]});
+        await instance.methods.startGame().send({from:accounts[0]}).then((res, err) =>{
+            if(err){
+                console.log(res);
+            }
+        });
     }).timeout(300000);
   
 
     it('ends game', async function () {
         await timeOut(10);
-        await instance.methods.endGame().send({from:accounts[0]});
+        await instance.methods.endGame().send({from:accounts[0]}).then((res, err)=>{
+            console.log(res);
+        });
     }).timeout(300000);
 
 
     it('should distribute prize', async function () {
         initBalance = [await usdc.methods.balanceOf(accounts[0]).call()];
-        await instance.methods.distributePrize([accounts[0]]).send({from:accounts[0]});
+        await instance.methods.distributePrize([accounts[0]]).send({from:accounts[0]}).then((res, err)=>{
+            console.log(res);
+        });
     }).timeout(300000);
 
 

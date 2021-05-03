@@ -20,9 +20,10 @@ contract Game{
     bool live;
     bool completed;
     bool activated;
-    address orgAddress = 0x604BCD042D2d5B355ecE14B6aC3224d23F29a51c;
+    address orgAddress = 0x4CB1777965c956E620648245794145382Bdfd620;
     address payable orgWallet = payable(address(orgAddress));
-    uint256 startTime = block.timestamp;
+    uint256 createdTime = block.timestamp;
+    uint256 startTime;
     ERC20 usdc;
 
     struct Player {
@@ -38,6 +39,14 @@ contract Game{
     ){
         activated = false;
         usdc = ERC20(_token);
+    }
+
+    function buyToken(uint256 amount) public returns (bool) {
+        require(amount > 0, "You can't send 0 tokens");
+        uint256 allowance = usdc.allowance(msg.sender, address(this));
+        require(allowance >= amount, "Check the token allowance");
+        usdc.transferFrom(msg.sender, address(this), amount);
+        return true;
     }
 
     function pseudoConstructor(
@@ -74,24 +83,10 @@ contract Game{
         activated = true;
     }
 
-    function buyToken(uint256 amount) public returns (bool) {
-        require(amount > 0, "You can't send 0 tokens");
-        uint256 allowance = usdc.allowance(msg.sender, address(this));
-        require(allowance >= amount, "Check the token allowance");
-        usdc.transferFrom(msg.sender, address(this), amount);
-        return true;
-    }
+  
 
 
-    function startGame() public {
-        require(activated, "The game is not yet activated");
-        require(curNumPlayers == numPlayers, "Mismatch in number of players.");
-        require(
-            msg.sender == orgAddress,
-            "only the organization can start the game"
-        );
-        live = true;
-    }
+   
 
     function joinGame(uint256[] memory coins, uint256[] memory weightage, uint256 amount)
         public
@@ -137,18 +132,19 @@ contract Game{
         return gameId;
     }
 
-    function finalize() public {
+     function startGame() public {
+        require(activated, "The game is not yet activated");
+        require(curNumPlayers == numPlayers, "Mismatch in number of players.");
         require(
             msg.sender == orgAddress,
-            "only the organization can end the game"
+            "only the organization can start the game"
         );
-        orgWallet.transfer(address(this).balance);
-        uint256 rem_balance = usdc.balanceOf(address(this));
-        usdc.transfer(orgAddress, rem_balance);
-        
-        selfdestruct(payable(address(this)));
-        
+        require(block.timestamp - createdTime <= 10 minutes);
+        live = true;
+        startTime = block.timestamp;
     }
+
+    
 
     function endGame() public returns (bool) {
         require(activated, "The game is not yet activated");
@@ -190,6 +186,20 @@ contract Game{
         payable(gameOwner).transfer(address(this).balance);
         uint256 balance = usdc.balanceOf(address(this));
         usdc.transfer(gameOwner, balance);
+        finalize();
+    }
+
+    function finalize() public {
+        require(
+            msg.sender == orgAddress,
+            "only the organization can end the game"
+        );
+        orgWallet.transfer(address(this).balance);
+        uint256 rem_balance = usdc.balanceOf(address(this));
+        usdc.transfer(orgAddress, rem_balance);
+        
+        selfdestruct(payable(address(this)));
+        
     }
 
     function getGameState()
