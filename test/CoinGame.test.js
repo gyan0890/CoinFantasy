@@ -9,6 +9,7 @@ const sendtoConstruct = 100000;
 const playerContribution = 1000;
 const numberOfCoins = 3;
 const gameTime = 10;
+const waitTime = 10;
 const numPlayers = 1;
 const numberOfWinners = 1;
 const gamePool = 1000;
@@ -20,7 +21,7 @@ var usdc, accounts, default_params;
 
 accounts = ['0x4CB1777965c956E620648245794145382Bdfd620'];
 
-default_params = {'_gameId':gameId, '_numberOfCoins': numberOfCoins, '_gameTime': gameTime, '_numPlayers': numPlayers,
+default_params = {'_gameId':gameId, '_numberOfCoins': numberOfCoins, '_gameTime': gameTime,  '_waitTime': waitTime,'_numPlayers': numPlayers,
 '_numberOfWinners':numberOfWinners, '_winnerWeight':winnerWeight, '_gamePool':gamePool, 
 '_lockIn':lockIn, '_playerContribution':playerContribution, '_account':accounts[0], '_sendtoConstruct':sendtoConstruct,
 '_token':'0x68ec573c119826db2eaea1efbfc2970cdac869c4'};
@@ -61,17 +62,18 @@ async function createNewContract(params = default_params){
     return new Promise( async function (resolve, reject){
         params['_token'] = usdc.address;
         const deployedContract = await Game.new(params['_token'], {from:accounts[0]});
-        await usdc.approve.sendTransaction(deployedContract.address, params['_lockIn']*10, {from:accounts[0]});
+        await usdc.approve.sendTransaction(deployedContract.address, params['_lockIn'], {from:accounts[0]});
         await deployedContract.pseudoConstructor.sendTransaction(
             params['_gameId'],//                -0
             params['_numberOfCoins'],//         -1      
             params['_gameTime'],//              -2
-            params['_numPlayers'],//            -3
-            params['_numberOfWinners'],//       -4
-            params['_winnerWeight'],//          -5
-            params['_gamePool'],//              -6      
-            params['_lockIn'],//                -7
-            params['_playerContribution'],//    -8
+            params['_waitTime'],//              -3
+            params['_numPlayers'],//            -4
+            params['_numberOfWinners'],//       -5
+            params['_winnerWeight'],//          -6
+            params['_gamePool'],//              -7      
+            params['_lockIn'],//                -8
+            params['_playerContribution'],//    -9
             {
                 from:accounts[0]
             }
@@ -89,6 +91,7 @@ describe('Game', async function () {
     var weightage = [1, 1, 1];
     var initBalance = [];
     params = default_params;
+    params['_numPlayers']=1;
 
     it('should create an instance of the contract', async function () {
         instance = await createNewContract(params);
@@ -119,6 +122,20 @@ describe('Game', async function () {
     it('should have sent back the tokens', async function () {
         let currentBalance = [await usdc.balanceOf.call(accounts[0])];
         assert(currentBalance[0] > initBalance[0]);
+    });
+
+});
+
+describe('Expired Game', async function () {
+    params = default_params;
+
+    it('should create an instance of the contract', async function () {
+        instance = await createNewContract(params);
+    })
+    
+    it('calls expire function game', async function () {
+        await timeout(12);
+        await instance.expiredGame.sendTransaction({from:accounts[0]});
     });
 
 });

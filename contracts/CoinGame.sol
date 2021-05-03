@@ -13,6 +13,7 @@ contract Game{
     uint256 curNumPlayers;
     uint256 numCoins;
     uint256 gameTime;
+    uint256 waitTime;
     uint256 numWinners;
     uint256 playerContribution;
     uint256[] winnerWeights;
@@ -53,12 +54,13 @@ contract Game{
         uint256 _gameId,//                      -0
         uint256 _numCoins,//                    -1
         uint256 _gameTime,//                    -2
-        uint256 _numPlayers,//                  -3
-        uint256 _numWinners,//                  -4
-        uint256[] memory _winnerWeights,//      -5
-        uint256 _gamePool,//                    -6
-        uint256 _lockIn,//                      -7
-        uint256 _playerContribution//           -8
+        uint256 _waitTime,//                    -3
+        uint256 _numPlayers,//                  -4
+        uint256 _numWinners,//                  -5
+        uint256[] memory _winnerWeights,//      -6
+        uint256 _gamePool,//                    -7
+        uint256 _lockIn,//                      -8
+        uint256 _playerContribution//           -9
     ) public {
 
         require(
@@ -74,6 +76,7 @@ contract Game{
         curNumPlayers = 0;
         numCoins = _numCoins;
         gameTime = _gameTime;
+        waitTime = _waitTime;
         numWinners = _numWinners;   
         gamePool = _gamePool;
         playerContribution = _playerContribution;
@@ -139,10 +142,41 @@ contract Game{
             msg.sender == orgAddress,
             "only the organization can start the game"
         );
-        require(block.timestamp - createdTime <= 10 minutes);
+        require(block.timestamp - createdTime <= waitTime*1);
         live = true;
         startTime = block.timestamp;
     }
+
+    function finalize() public {
+        require(
+            msg.sender == orgAddress,
+            "only the organization can end the game"
+        );
+        orgWallet.transfer(address(this).balance);
+        uint256 rem_balance = usdc.balanceOf(address(this));
+        usdc.transfer(orgAddress, rem_balance);
+        
+        selfdestruct(payable(address(this)));
+        
+    }
+
+    function expiredGame() public {
+        require(activated, "The game is not yet activated");
+        require(curNumPlayers < numPlayers, "Player count reached");
+        require(
+            msg.sender == orgAddress,
+            "only the organization can start the game"
+        );
+        require(block.timestamp - createdTime > waitTime*1);
+        uint256 i;
+        for(i = 0; i < curNumPlayers; i++){
+            usdc.transfer(players[i].player, playerContribution);
+        }
+        finalize();
+    }
+
+
+   
 
     
 
@@ -189,18 +223,7 @@ contract Game{
         finalize();
     }
 
-    function finalize() public {
-        require(
-            msg.sender == orgAddress,
-            "only the organization can end the game"
-        );
-        orgWallet.transfer(address(this).balance);
-        uint256 rem_balance = usdc.balanceOf(address(this));
-        usdc.transfer(orgAddress, rem_balance);
-        
-        selfdestruct(payable(address(this)));
-        
-    }
+    
 
     function getGameState()
         public
