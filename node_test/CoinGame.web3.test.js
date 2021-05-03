@@ -5,6 +5,7 @@ const web3 = require('../web3');
 const { reject } = require("any-promise");
 
 
+
 const sendtoConstruct = 100000;
 const playerContribution = 1000;
 const numberOfCoins = 3;
@@ -34,6 +35,9 @@ describe('usdc_contract', async  ()=> {
 });
 
 
+function timeOut(s) {
+    return new Promise(resolve => setTimeout(resolve, s*1e3));
+}
 
 
 
@@ -53,20 +57,18 @@ async function createNewContract(params = default_params){
             params['_gameId'],//                -0
             params['_numberOfCoins'],//         -1      
             params['_gameTime'],//              -2
-            params['_numPlayers'],//            -3
-            params['_numberOfWinners'],//       -4
-            params['_winnerWeight'],//          -5
-            params['_gamePool'],//              -6      
-            params['_lockIn'],//                -7
-            params['_playerContribution'],//    -8
+            params['_waitTime'],//              -3
+            params['_numPlayers'],//            -4
+            params['_numberOfWinners'],//       -5
+            params['_winnerWeight'],//          -6
+            params['_gamePool'],//              -7      
+            params['_lockIn'],//                -8
+            params['_playerContribution'],//    -9
         ).send({from:accounts[0]});
         return resolve(deployedContract);
     });
 }
 
-function timeOut(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 
 var instance;
@@ -78,12 +80,15 @@ describe('Game', async function () {
     params = default_params;
 
 
+
     it('should create an instance of the contract', async function () {
         accounts = await web3.eth.getAccounts();
         params['_account']=accounts[0];
         instance = await createNewContract(params);
         console.log('\tcontract address : ', instance.options.address);
     }).timeout(300000);
+
+
 
     it('player 1 should have joined', async function () {
         console.log('\t account balance(before): ', await usdc.methods.balanceOf(accounts[0]).call());
@@ -93,6 +98,9 @@ describe('Game', async function () {
         console.log('\t contract balance(after): ', await usdc.methods.balanceOf(instance.options.address).call());
         console.log('\t account balance(after): ', await usdc.methods.balanceOf(accounts[0]).call());
     }).timeout(300000);
+
+
+
     it('starts the game', async function () {
         await instance.methods.startGame().send({from:accounts[0]}).then((res, err) =>{
             if(err){
@@ -122,9 +130,25 @@ describe('Game', async function () {
         let currentBalance = [await usdc.methods.balanceOf(accounts[0]).call()];
         assert(currentBalance[0] > initBalance[0]);
     }).timeout(300000);
+});
 
-    it('exits the process', function () {
-        process.exit();
-    });
+describe('ExpiresGame', async function () {
+    default_params._account = accounts[0];
+    params = default_params;
 
+
+    it('should create an instance of the contract', async function () {
+        accounts = await web3.eth.getAccounts();
+        params['_account']=accounts[0];
+        instance = await createNewContract(params);
+        console.log('\tcontract address : ', instance.options.address);
+    }).timeout(300000);
+  
+
+    it('expires game', async function () {
+        await timeOut(12);
+        await instance.methods.expiredGame().send({from:accounts[0]}).then((res, err)=>{
+            console.log(res);
+        });
+    }).timeout(300000);
 });

@@ -21,7 +21,7 @@ contract Game{
     bool live;
     bool completed;
     bool activated;
-    address orgAddress = 0x4CB1777965c956E620648245794145382Bdfd620;
+    address orgAddress = 0x604BCD042D2d5B355ecE14B6aC3224d23F29a51c;
     address payable orgWallet = payable(address(orgAddress));
     uint256 createdTime = block.timestamp;
     uint256 startTime;
